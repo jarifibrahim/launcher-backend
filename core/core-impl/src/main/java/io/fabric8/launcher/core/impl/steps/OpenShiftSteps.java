@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ import javax.inject.Inject;
 
 import io.fabric8.launcher.core.api.events.StatusMessageEvent;
 import io.fabric8.launcher.core.api.projectiles.CreateProjectile;
+import io.fabric8.launcher.core.api.projectiles.ImportFromGitProjectile;
 import io.fabric8.launcher.service.git.api.GitRepository;
 import io.fabric8.launcher.service.git.api.GitService;
 import io.fabric8.launcher.service.openshift.api.OpenShiftProject;
@@ -90,6 +92,22 @@ public class OpenShiftSteps {
                                                                     singletonMap("routes", openShiftService.getRoutes(openShiftProject))));
     }
 
+    public void importFromGitRepository(OpenShiftProject openShiftProject,
+                                        GitRepository repository,
+                                        ImportFromGitProjectile projectile) {
+        InputStream templateStream = getClass().getResourceAsStream(projectile.getBuilderImage() + ".json");
+        if (templateStream == null) {
+            //TODO: Move this validation to use BeanValidation annotations in the ImportEndpoint
+            throw new IllegalArgumentException("Builder image " + projectile.getBuilderImage() + " does not exist or could not be located");
+        }
+        openShiftService.configureProject(openShiftProject,
+                                          templateStream,
+                                          gitService.getProvider(),
+                                          repository.getGitCloneUri(),
+                                          null);
+        projectile.getEventConsumer().accept(new StatusMessageEvent(projectile.getId(), OPENSHIFT_PIPELINE,
+                                                                    singletonMap("routes", openShiftService.getRoutes(openShiftProject))));
+    }
 
     public List<URL> getWebhooks(OpenShiftProject project) {
         return openShiftService.getWebhookUrls(project);
