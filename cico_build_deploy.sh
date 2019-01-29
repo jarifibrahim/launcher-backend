@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 GENERATOR_DOCKER_HUB_USERNAME=openshiftioadmin
-REGISTRY_URI="push.registry.devshift.net"
+REGISTRY_URI="quay.io"
 REGISTRY_NS="fabric8"
 REGISTRY_IMAGE="launcher-backend"
 DOCKER_HUB_URL=${REGISTRY_NS}/${REGISTRY_IMAGE}
